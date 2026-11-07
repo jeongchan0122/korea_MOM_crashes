@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-1단계: DataGuide 엑셀 13개를 parquet 복사본으로 저장한다.
+1단계: DataGuide 엑셀 14개를 parquet 복사본으로 저장한다.
 
 왜 필요한가
 - 엑셀이 커서 읽는 데 오래 걸린다. 한 번만 읽어 복사본을 만들어 두면 다음 단계부터 빠르다.
@@ -29,7 +29,7 @@ from python_calamine import CalamineWorkbook
 원본폴더 = 프로젝트 / "한국데이터"
 저장폴더 = 프로젝트 / "처리데이터" / "원본캐시"
 
-# 복사할 엑셀 13개.
+# 복사할 엑셀 14개.
 대상파일 = [
     # WML 재료 10개
     "02_시가총액.xlsx",
@@ -47,6 +47,8 @@ from python_calamine import CalamineWorkbook
     # 붕괴 예측 지표 후보용 일별 지수 2개(시장 변동성, 모멘텀 변동성)
     "44_지수_일간.xlsx",
     "45_FF팩터지수_일간.xlsx",
+    # 롱온리와 시장의 샤프에서 뺄 무위험수익률(CD 91일물)
+    "09_금리.xlsx",
 ]
 
 

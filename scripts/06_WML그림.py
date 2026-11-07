@@ -8,11 +8,12 @@
 - 3_2x3_월별수익률.png: 2x3의 월별 수익률과 최악의 달 5개
 
 누적수익률은 매달 전액을 다시 투자한다고 가정하고, 거래비용은 빼지 않는다.
-붕괴 정의를 아직 정하지 않았으므로 그림 3에서는 "최악의 달"이라고만 쓴다.
+그림 3의 "최악의 달"은 월수익률이 가장 낮은 5개 달이며, 8절의 붕괴 기준과는 다르다.
 
 실행: python scripts/06_WML그림.py   (먼저 scripts/05_WML계산.py를 실행해 두어야 함)
 결과: 결과/WML/*.png
 """
+import importlib.util
 from pathlib import Path
 
 import matplotlib
@@ -26,6 +27,11 @@ from matplotlib.ticker import FixedLocator, FuncFormatter, NullLocator
 프로젝트 = Path(__file__).resolve().parent.parent
 처리폴더 = 프로젝트 / "처리데이터"
 저장폴더 = 프로젝트 / "결과" / "WML"
+
+# NW t 계산은 05번의 함수를 그대로 쓴다. 파일 이름이 숫자로 시작해 경로로 불러온다.
+_명세 = importlib.util.spec_from_file_location("WML계산", Path(__file__).resolve().parent / "05_WML계산.py")
+월별코드 = importlib.util.module_from_spec(_명세)
+_명세.loader.exec_module(월별코드)
 
 시작, 끝 = "2000-01", "2026-09"
 방식순서 = ["2x3", "5x5", "5분위", "10분위"]
@@ -101,7 +107,7 @@ def 그림1(월별, 지수):
     for 이름, (값, 색) in 선들.items():
         ax.plot(월말날짜(값.index), 값.values, color=색, linewidth=2, label=이름)
     로그축(ax, [0.5, 1, 2, 5, 10, 20])
-    틀꾸미기(ax, "직접 만든 WML은 FnGuide 지수와 방향이 비슷하지만 누적 수익은 더 높다",
+    틀꾸미기(ax, "직접 만든 WML은 FnGuide 지수와 방향이 비슷하고 최종 누적 수익은 조금 더 높다",
          f"시작값 1, 로그 눈금, 거래비용 미반영. 월 수익률 상관 {내것.corr(fg):.2f}.")
     ax.legend(loc="upper left", frameon=False, ncol=2)
     끝값표시(ax, [(이름.split(" ")[0] if "FnGuide" in 이름 else "직접 계산", 값.iloc[-1]) for 이름, (값, _) in 선들.items()])
@@ -143,7 +149,7 @@ def 그림3(월별):
     ax.set_xlim(pd.Timestamp("1999-06-30"), pd.Timestamp("2027-03-31"))
     ax.yaxis.set_major_formatter(FuncFormatter(lambda v, _: f"{v:g}%"))
     틀꾸미기(ax, "2×3 WML의 큰 손실은 일부 달에 집중된다",
-         "월별 롱숏 수익률, 2000-01 ~ 2026-09. 주황색은 최악의 달 5개. 붕괴의 정의는 아직 정하지 않았다.")
+         "월별 롱숏 수익률, 2000-01부터 2026-09까지. 주황색은 수익률이 가장 낮은 5개 달.")
 
     # 가까운 달의 글자가 겹치지 않게 글자 높이를 달마다 지정한다.
     글자높이 = {"2001-01": -2.2, "2000-09": 0.0, "2009-04": -1.2, "2009-01": -3.2, "2026-07": -1.2}
@@ -176,7 +182,7 @@ def 실행():
         r = 월별[월별["방식"] == 방식].set_index("연월")["롱숏_%"]
         앞 = r.loc[:"2025-12"]
         print(f"  {방식}: {값.iloc[-1]:.2f}배, 고점 {값.max():.2f}배({값.idxmax()}), 2025-12 {값.loc['2025-12']:.2f}배, "
-              f"2026년 {값.iloc[-1] / 값.loc['2025-12']:.2f}배, 2025-12까지 월평균 {앞.mean():.2f}% (t {앞.mean() / 앞.std() * np.sqrt(len(앞)):.2f}), "
+              f"2026년 {값.iloc[-1] / 값.loc['2025-12']:.2f}배, 2025-12까지 월평균 {앞.mean():.2f}% (NW t {월별코드.뉴이웨스트t(앞):.2f}), "
               f"최고의 달 {[(k, round(v, 1)) for k, v in r.nlargest(4).items()]}")
     fg = (지수["3FM.2M3.MOM"].pct_change(fill_method=None) * 100).reindex(월별[월별["방식"] == "2x3"]["연월"].values)
     print(f"  FnGuide 3FM.2M3.MOM: {누적(fg).iloc[-1]:.2f}배")
