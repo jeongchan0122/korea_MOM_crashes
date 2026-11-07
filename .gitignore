@@ -3,7 +3,11 @@
 /*
 !/.gitignore
 !/README.md
-!/모멘텀 붕괴 연구(파퀀 프로젝트).md
+
+# 팀 문서: docs 안의 .md만
+!/docs/
+/docs/*
+!/docs/*.md
 
 # 코드: scripts 안의 .py만
 !/scripts/
